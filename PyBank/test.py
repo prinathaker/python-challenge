@@ -1,15 +1,16 @@
 import os
 import csv
+import formatter
+total = 0
+nettotal = 0
 
 # dictionary for greatest increase and decrease
 great_inc = {"month": "", "value":0}
 great_dec = {"month": "", "value" : 0}
 
-#lists for various calculations
 monthly_change = []
-month_count = []
-profit = []
-chg_profit = []
+previous_value = 0
+profit_change = 0
 
 # specify input file name and path
 currt_dir = os.getcwd()
@@ -37,32 +38,40 @@ with open(budget_csv) as csvfile:
     
 # Read each row of data after the header
     for row in data:
-        month_count.append(row[0])
-        profit.append(int(row[1]))
-    for i in range(len(profit)-1):
-        chg_profit.append(profit[i+1]-profit[i])
-                      
-#evaluate the max and min from the list made
-amtinc = max(chg_profit)
-amtdec = min(chg_profit)
 
-#using the index, 
-great_inc = chg_profit.index(max(chg_profit))+1
-great_dec = chg_profit.index(min(chg_profit))+1
+        #total months
+        total = total + int(row[1])
 
-      
+         #Find greatest increase and decrease
+        if great_inc["value"] < int(row[1]):
+            great_inc["month"] = row[1]
+            great_inc["value"] = int(row[1])
+        if great_dec["value"] > int(row[1]):
+            great_dec["month"] = row[1]
+            great_dec["value"] = int(row[1])
+
+        #count average changes for entire period
+        profit_change = int(row[1]) - previous_value
+        monthly_change.append(profit_change)
+        previous_value = int(row[1])
+        
+    #calculate average change
+    average_change = sum(monthly_change) / row_count
+        
 result = (
     f"Financial Analysis\n"
     f"----------------------------------\n"
     f"Total Months: {row_count}\n"
-    f"Total: ${sum(profit)}\n"
-    f"Average Change: ${round(sum(chg_profit)/len(chg_profit),2)}\n"
-    f"Greatest Increase in Profits: {month_count[great_inc]} (${(str(amtinc))})\n"
-    f"Greatest Decrease in Profits: {month_count[great_dec]} (${(str(amtdec))})\n"
+    f"Total: ${total}\n"
+    f"Average Change: ${round(average_change,2)}\n"
+    f"Greatest Increase in Profits: {great_inc['month']}  (${great_inc['value']})\n"
+    f"Greatest Decrease in Profits: {great_dec['month']}  (${great_dec['value']})\n"
 )
+
+#print results on terminal
 print(result)
 
 #Open Outputfile and add budge analysis results
 with open(OutputFileName, "w+") as txt_file:
-   txt_file.write(result)
-   txt_file.close()
+    txt_file.write(result)
+    txt_file.close()
